@@ -1,4 +1,5 @@
 import random as rnd
+import time
 import tkinter as tk
 
 from config import Configuration as Conf
@@ -6,13 +7,12 @@ from config import Configuration as Conf
 
 class Overlay(tk.Frame):
     def __init__(self, window):
-        self.window = window
-        super().__init__(window,
+        super().__init__(master=window,
                          width=Conf.OVERLAY_WIDTH,
                          height=Conf.WIN_HEIGHT,
-                         bg=Conf.BG_CLR)
+                         bg=Conf.BG_CLR,
+                         highlightthickness=0)
         self.pack_propagate(False)
-        self.config(highlightbackground=Conf.BG_CLR)
         self.pack(side=tk.RIGHT, fill=tk.Y)
         self.next = Next(self)
         self.counter = Counter(self)
@@ -21,46 +21,64 @@ class Overlay(tk.Frame):
 
 class Next(tk.Frame):
     def __init__(self, overlay):
-        self.overlay = overlay
-        super().__init__(overlay,
+        super().__init__(master=overlay,
                          width=Conf.WIN_HEIGHT // 4,
-                         bg=Conf.BG_CLR)
+                         bg=Conf.BG_CLR,
+                         highlightthickness=0)
         self.pack(fill=tk.BOTH)
         self.next = tk.Label(self,
                              text="NEXT", fg=Conf.TXT_CLR, bg=Conf.BG_CLR,
                              font=("Ariel", Conf.WIN_HEIGHT // 30))
         self.next.pack(pady=Conf.WIN_HEIGHT // 30)
-        self.size = Conf.WIN_HEIGHT // 6
-        self.next_el = tk.Canvas(self,
-                                 width=self.size,
-                                 height=self.size,
-                                 bg=Conf.BG_CLR, highlightthickness=0)
-        self.next_el.pack()
-        self.next_el.create_rectangle(0, 0, self.size - 1, self.size - 1, outline=Conf.FG_CLR)
+        self.cvs = tk.Canvas(self,
+                             width=Conf.WIN_HEIGHT // 6,
+                             height=Conf.WIN_HEIGHT // 6,
+                             bg=Conf.BG_CLR,
+                             highlightbackground=Conf.FG_CLR,
+                             highlightthickness=Conf.NEXT_BRD_WIDTH)
+        self.cvs.pack()
         self.template = [[]]
+        self.tag = ""
         self.dtl_type = -1
 
     def generate(self):
         """
         Draws next dropping frames in the overlay
         """
+        self.cvs.delete(self.tag)
+        self.tag = f"next{time.time()}"
         self.dtl_type = rnd.randint(0, len(Conf.DTL_TYPES) - 1)
         self.template = Conf.DTL_TYPES[self.dtl_type]
         for _ in range(rnd.randint(0, 3)):
             self.template = [list(t) for t in zip(*reversed(self.template))]
-        # TODO: Must to draw this figure
+        size = self.cvs.winfo_width()
+        block_size = size // (max(len(self.template), len(self.template[0])) + Conf.NEXT_PAD * 2)
+        border_width = Conf.DTL_BORDER_WIDTH * block_size // Conf.DTL_SIZE
+        border_offset = border_width / 2
+        draw = list(map(lambda x: list(x), filter(lambda r: r != [0] * len(r), self.template)))
+        draw = list(map(lambda x: list(x), zip(*filter(lambda r: list(r) != [0] * len(r), zip(*draw)))))
+        x_offset = round((size - len(draw[0]) * block_size) / 2)
+        y_offset = round((size - len(draw) * block_size) / 2)
+        for row_ind, row in enumerate(draw):
+            for col_ind, col in enumerate(row):
+                if col:
+                    raw_x0 = x_offset + col_ind * block_size + border_offset
+                    raw_y0 = y_offset + row_ind * block_size + border_offset
+                    raw_x1 = raw_x0 + block_size - border_width
+                    raw_y1 = raw_y0 + block_size - border_width
+                    self.cvs.create_rectangle(raw_x0, raw_y0, raw_x1, raw_y1,
+                                              fill=Conf.DTL_CLR[self.dtl_type],
+                                              outline=Conf.DTL_BRD_CLR[self.dtl_type],
+                                              width=border_width,
+                                              tag=self.tag)
 
-    def pop(self):
-        last_temp = self.template
-        last_type = self.dtl_type
-        self.generate()
-        return last_temp, last_type
+    def get(self):
+        return self.template, self.dtl_type
 
 
 class Counter(tk.Frame):
     def __init__(self, overlay):
-        self.overlay = overlay
-        super().__init__(overlay,
+        super().__init__(master=overlay,
                          width=Conf.WIN_HEIGHT // 4,
                          bg=Conf.BG_CLR)
         self.pack(fill=tk.BOTH, pady=Conf.WIN_HEIGHT // 20)
@@ -68,7 +86,7 @@ class Counter(tk.Frame):
         def counter_lbl(text):
             lbl = tk.Label(self,
                            text=text, fg=Conf.TXT_CLR, bg=Conf.BG_CLR,
-                           font=("Ariel", Conf.WIN_HEIGHT // 40))
+                           font=("Ariel", Conf.WIN_HEIGHT // 35))
             lbl.pack()
             return lbl
 
@@ -90,10 +108,9 @@ class Counter(tk.Frame):
 
 class Button(tk.Button):
     def __init__(self, overlay):
-        self.overlay = overlay
-        super().__init__(overlay,
-                         text="START", font=("Ariel", Conf.WIN_HEIGHT // 40),
-                         width=10,
+        super().__init__(master=overlay,
+                         text="START", font=("Ariel", Conf.WIN_HEIGHT // 30),
+                         width=8,
                          height=1,
                          fg=Conf.BG_CLR, bg=Conf.FG_CLR,
                          relief=tk.FLAT,
@@ -101,4 +118,4 @@ class Button(tk.Button):
         self.pack(side=tk.BOTTOM, pady=Conf.WIN_HEIGHT // 20)
 
     def click(self):
-        self.overlay.window.game.start()
+        self.master.master.game.start()

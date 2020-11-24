@@ -8,8 +8,8 @@ from frames.overlay import Overlay
 class Window(tk.Tk):
     def __init__(self):
         super().__init__()
-        width = Conf.WIN_WIDTH
-        height = Conf.WIN_HEIGHT
+        width = Conf.WIN_WIDTH + Conf.FIELD_BRD_WIDTH
+        height = Conf.WIN_HEIGHT + Conf.FIELD_BRD_WIDTH * 2
         self.geometry(f"{width}x{height}")
         self.resizable(width=False, height=False)
         self.title("TETRIS")
