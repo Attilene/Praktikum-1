@@ -8,7 +8,7 @@ def get_border_clr(clr):
 
 class Configuration:
     # Settings
-    WITH_ICON = True
+    WITH_ICON = False
     ICON_PATH = "tetris/icon/icon.gif"
     RESIZABLE = False
     BG_CLR = "#111"
