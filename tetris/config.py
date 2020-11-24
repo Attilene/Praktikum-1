@@ -8,6 +8,9 @@ def get_border_clr(clr):
 
 class Configuration:
     # Settings
+    WITH_ICON = True
+    ICON_PATH = "tetris/icon/icon.gif"
+    RESIZABLE = False
     BG_CLR = "#111"
     FG_CLR = "gray"
     TXT_CLR = "white"
@@ -17,9 +20,11 @@ class Configuration:
     FIELD_BRD_WIDTH = 5  # px
     X_BLOCKS = 10  # blocks
     Y_BLOCKS = 20  # blocks
-    NEXT_PAD = 1  # px
+    NEXT_PAD = 1  # blocks
     NEXT_BRD_WIDTH = 2  # px
-    LEVEL_CONDITION = 8  # px
+    VERTICAL_MARGIN = 3
+    START_LEVEL = 5
+    LEVEL_CONDITION = 8  # lines
     POINTS_FOR_LINES = [0, 100, 300, 700, 1500]
     DTL_BORDER_WIDTH = 4  # px
     DTL_TYPES = [

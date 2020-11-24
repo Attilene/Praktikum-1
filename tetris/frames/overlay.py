@@ -16,7 +16,12 @@ class Overlay(tk.Frame):
         self.pack(side=tk.RIGHT, fill=tk.Y)
         self.next = Next(self)
         self.counter = Counter(self)
-        self.start = Button(self)
+        self.button = Button(self)
+
+    def reset(self):
+        self.next.reset()
+        self.counter.reset()
+        self.button.reset()
 
 
 class Next(tk.Frame):
@@ -38,15 +43,18 @@ class Next(tk.Frame):
                              highlightthickness=Conf.NEXT_BRD_WIDTH)
         self.cvs.pack()
         self.template = [[]]
-        self.tag = ""
+        self.dtl_type = -1
+
+    def reset(self):
+        self.cvs.delete("all")
+        self.template = [[]]
         self.dtl_type = -1
 
     def generate(self):
         """
         Draws next dropping frames in the overlay
         """
-        self.cvs.delete(self.tag)
-        self.tag = f"next{time.time()}"
+        self.cvs.delete("all")
         self.dtl_type = rnd.randint(0, len(Conf.DTL_TYPES) - 1)
         self.template = Conf.DTL_TYPES[self.dtl_type]
         for _ in range(rnd.randint(0, 3)):
@@ -69,8 +77,7 @@ class Next(tk.Frame):
                     self.cvs.create_rectangle(raw_x0, raw_y0, raw_x1, raw_y1,
                                               fill=Conf.DTL_CLR[self.dtl_type],
                                               outline=Conf.DTL_BRD_CLR[self.dtl_type],
-                                              width=border_width,
-                                              tag=self.tag)
+                                              width=border_width)
 
     def get(self):
         return self.template, self.dtl_type
@@ -87,22 +94,30 @@ class Counter(tk.Frame):
             lbl = tk.Label(self,
                            text=text, fg=Conf.TXT_CLR, bg=Conf.BG_CLR,
                            font=("Ariel", Conf.WIN_HEIGHT // 35))
-            lbl.pack()
+            lbl.pack(pady=Conf.VERTICAL_MARGIN)
             return lbl
 
         self.score = counter_lbl("SCORE")
         self.score_msr = counter_lbl("0")
-        self.lvl = counter_lbl("LEVEL")
-        self.lvl_msr = counter_lbl("1")
+        self.level = counter_lbl("LEVEL")
+        self.level_msr = counter_lbl(str(Conf.START_LEVEL))
+        self.max = counter_lbl("MAX")
+        self.max_msr = counter_lbl("0")
+
+    def reset(self):
+        if int(self.score_msr["text"]) > int(self.max_msr["text"]):
+            self.max_msr["text"] = str(self.score_msr["text"])
+        self.score_msr["text"] = "0"
+        self.level_msr["text"] = str(Conf.START_LEVEL)
 
     def raise_score(self, delta):
         self.score_msr["text"] = str(int(self.score_msr["text"]) + delta)
 
     def raise_level(self):
-        self.lvl_msr["text"] = str(int(self.lvl_msr["text"]) + 1)
+        self.level_msr["text"] = str(int(self.level_msr["text"]) + 1)
 
     def get_interval(self) -> int:
-        level = int(self.lvl_msr["text"])
+        level = int(self.level_msr["text"])
         return int((0.8 - ((level - 1) * 0.007)) ** (level - 1) * 1000)
 
 
@@ -117,5 +132,8 @@ class Button(tk.Button):
                          command=self.click)
         self.pack(side=tk.BOTTOM, pady=Conf.WIN_HEIGHT // 20)
 
+    def reset(self):
+        self.pack(side=tk.BOTTOM, pady=Conf.WIN_HEIGHT // 20)
+
     def click(self):
-        self.master.master.game.start()
+        self.master.master.start()
