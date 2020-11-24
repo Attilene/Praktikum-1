@@ -23,7 +23,7 @@ class Configuration:
     NEXT_PAD = 1  # blocks
     NEXT_BRD_WIDTH = 2  # px
     VERTICAL_MARGIN = 3
-    START_LEVEL = 5
+    START_LEVEL = 1
     LEVEL_CONDITION = 8  # lines
     POINTS_FOR_LINES = [0, 100, 300, 700, 1500]
     DTL_BORDER_WIDTH = 4  # px
